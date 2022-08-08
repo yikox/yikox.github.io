@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yikox.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="2020年实习时，由于需要频繁用到GDB调试，特此记录GDB调试使用的一些常用命令记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GDB调试笔记">
+<meta property="og:url" content="https://yikox.github.io/2022/01/06/gdb-diao-shi-bi-ji/index.html">
+<meta property="og:site_name" content="YIKOX&#39;BLOG">
+<meta property="og:description" content="2020年实习时，由于需要频繁用到GDB调试，特此记录GDB调试使用的一些常用命令记录">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-01-06T15:42:24.000Z">
+<meta property="article:modified_time" content="2022-08-08T06:02:24.557Z">
+<meta property="article:author" content="yikox">
+<meta property="article:tag" content="GDB">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://yikox.github.io/2022/01/06/gdb-diao-shi-bi-ji/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>GDB调试笔记 | YIKOX'BLOG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">YIKOX'BLOG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yikox.github.io/2022/01/06/gdb-diao-shi-bi-ji/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="yikox">
+      <meta itemprop="description" content="格物致知">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="YIKOX'BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GDB调试笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-06 23:42:24" itemprop="dateCreated datePublished" datetime="2022-01-06T23:42:24+08:00">2022-01-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-08 14:02:24" itemprop="dateModified" datetime="2022-08-08T14:02:24+08:00">2022-08-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index"><span itemprop="name">工具</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>2020年实习时，由于需要频繁用到GDB调试，特此记录GDB调试使用的一些常用命令记录</p>
+</blockquote>
+<span id="more"></span>
+
+<h4 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h4><p>使用GDB在编译时需要加上-g，没有-g将看不见函数名，变量名，取代的是内存地址</p>
+<h5 id="运行程序"><a href="#运行程序" class="headerlink" title="运行程序"></a>运行程序</h5><ul>
+<li><p><code>gdb+执行文件/路径</code></p>
+</li>
+<li><p><code>gdb+执行文件+core文件</code></p>
+</li>
+<li><p><code>gdb+执行文件+PID（进程ID</code></p>
+</li>
+</ul>
+<h5 id="调试已经运行的程序："><a href="#调试已经运行的程序：" class="headerlink" title="调试已经运行的程序："></a>调试已经运行的程序：</h5><ul>
+<li>ps查看程序运行的PID，然后用上面的命令<code>gdb+执行文件+PID</code>（进程ID）</li>
+<li>先用<code>pdb+执行文件</code> 关联上源代码，再用<code>attach</code>挂接进程的PID，用<code>detach</code>取消挂接的进程。</li>
+</ul>
+<h4 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h4><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>l(list)</td>
+<td>从第一行列出代码</td>
+</tr>
+<tr>
+<td>break+行号</td>
+<td>从16行设置断点</td>
+</tr>
+<tr>
+<td>break func</td>
+<td>设置断点在func入口处</td>
+</tr>
+<tr>
+<td>info break</td>
+<td>查看断点信息</td>
+</tr>
+<tr>
+<td>r (run)</td>
+<td>运行程序</td>
+</tr>
+<tr>
+<td>n(next)</td>
+<td>执行下一句，不会进入函数</td>
+</tr>
+<tr>
+<td>s(step)</td>
+<td>执行下一句，会进入函数</td>
+</tr>
+<tr>
+<td>c(continue)</td>
+<td>继续运行程序</td>
+</tr>
+<tr>
+<td>p 变量名(print 变量名)</td>
+<td>打印变量i的值</td>
+</tr>
+<tr>
+<td>bt</td>
+<td>查看函数堆栈</td>
+</tr>
+<tr>
+<td>finish</td>
+<td>退出函数</td>
+</tr>
+<tr>
+<td>q</td>
+<td>退出GDB</td>
+</tr>
+<tr>
+<td>s(symbols)+file</td>
+<td>从指定文件中读取符号表</td>
+</tr>
+<tr>
+<td>c/core file</td>
+<td>调试时core dump的core文件</td>
+</tr>
+<tr>
+<td>d/directory file</td>
+<td>加入一个源文件的搜索路径</td>
+</tr>
+</tbody></table>
+<p><code>until</code>运行命令到退出循环体</p>
+<p><code>stepi</code>和<code>nexti</code>单步执行一条机器指令</p>
+<ul>
+<li><p>打印结构体分行显示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set print pretty on </span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="暂停程序"><a href="#暂停程序" class="headerlink" title="暂停程序"></a>暂停程序</h4><h5 id="停止点"><a href="#停止点" class="headerlink" title="停止点"></a>停止点</h5><ul>
+<li><p>断点<code>break+行号/函数</code></p>
+</li>
+<li><p><em>可以通过条件设置（break if 条件）</em>*</p>
+</li>
+<li><p><em>修改条件可以通过 condition+断点号+新条件</em>*</p>
+</li>
+<li><p>观察点<code>watch+变量名</code>（值发生变化会暂停）</p>
+<ul>
+<li><code>rwatch +变量名</code>（变量被读时暂停）</li>
+<li><code>awatch+变量名</code>（读和写）</li>
+</ul>
+</li>
+<li><p>捕捉点<code>catch</code></p>
+</li>
+</ul>
+<h5 id="停止点维护"><a href="#停止点维护" class="headerlink" title="停止点维护"></a>停止点维护</h5><p>  <code>clear</code>清除所有停止点，可以加行号，函数指定清除的点<br>  <code>delete +断点号+范围</code><br>  <u><strong>clear和delete有啥区别</strong></u><br>  <code>disable和enable</code> 关掉和启动停止点</p>
+<h5 id="特殊命令："><a href="#特殊命令：" class="headerlink" title="特殊命令："></a>特殊命令：</h5><ul>
+<li><code>ignore+断点号+次数</code>程序运行时忽略该断点次数</li>
+<li><code>commands+断点号 +命令列表+end</code>当断点触发时运行的命令列表中的命令，有利于自动测试</li>
+</ul>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">commands 断点号</span><br><span class="line">  command-list</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h5><p>信号是一种软中断，是一种处理异步事件的方法。一般来说，操作系统都支持许多信号。尤其是UNIX，比较重要应用程序一般都会处理信号。UNIX 定义了许多信号，比如SIGINT表示中断字符信号，也就是Ctrl+C的信号，SIGBUS表示硬件故障的信号；SIGCHLD表示子进程状态改变信号；SIGKILL表示终止程序运行的信号，等等。信号量编程是UNIX 下非常重要的一种技术。</p>
+<p>定义GDB在调试过程中，当收到某种信号时的动作/停下/打印信息等等</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">handle+信号+处理方式</span><br></pre></td></tr></table></figure>
+
+<p>处理方式：</p>
+<p><code>Nostop</code>-不停下，但打印信息</p>
+<p><code>stop</code>-停下</p>
+<p>   <code>noprint</code>-不打印信息</p>
+<p>   <code>pass</code></p>
+<p><code>noignore</code>-GDB不处理该信号，交给被测程序处理</p>
+<p><code>nopass</code></p>
+<p><code>ignore</code>-不让被测程序处理</p>
+<p><code>info signals</code></p>
+<p><code>info handle</code></p>
+<p>查看哪些信号被GDB检测中</p>
+<h5 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h5><p>GDB可以指定断点在某一线程上**<code>break+行号+thread+线程ID</code>**</p>
+<p>线程ID需要通过GDB查看，命令**<code>info threads</code>**</p>
+<p>多线程调试时，可以取消线程轮转来进行单步调试（断到具体的函数，取消轮转，单步调试）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(gdb) set scheduler-locking on</span><br><span class="line">(gdb) set scheduler-locking off</span><br></pre></td></tr></table></figure>
+
+<h4 id="检查信息"><a href="#检查信息" class="headerlink" title="检查信息"></a>检查信息</h4><h5 id="栈信息"><a href="#栈信息" class="headerlink" title="栈信息"></a>栈信息</h5><p>查看栈信息<code>backtrace/bt</code>可以加一个数n,表示只打印栈顶n行</p>
+<p>查看当前栈详细信息<code>info frame/f</code></p>
+<p>切换当前栈<code>frame/f</code>,同理加n，也可以用**<code>up和down</code>**上下移动</p>
+<h5 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h5><p><code>forward-search 条件</code> 向前搜索</p>
+<p><code>search 条件</code> 向后搜索</p>
+<p><code>reverse-search 条件</code> 全局搜索</p>
+<p>条件为正则表达式形式</p>
+<h5 id="查看内存"><a href="#查看内存" class="headerlink" title="查看内存"></a>查看内存</h5><ul>
+<li><p>查看源代码在运行时的地址</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">info line 行号/文件名：行号/文件名：函数名</span><br></pre></td></tr></table></figure></li>
+<li><p>查看源程序的当前执行时的机器码</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">disassemble func</span><br><span class="line"><span class="meta">#</span><span class="bash"> 会打印出函数func的汇编代码</span></span><br></pre></td></tr></table></figure></li>
+<li><p>查看内存地址中的值</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">examine命令，简写x</span></span><br><span class="line">x n/f/u addr</span><br><span class="line"><span class="meta">#</span><span class="bash">n 是一个正整数，表示显示内存的长度，也就是说从当前地址向后显示几个地址的内容。</span></span><br><span class="line"><span class="meta">#</span><span class="bash">f 表示显示的格式，参见上面。如果地址所指的是字符串，那么格式可以是s，如果地十是指令地址，那么格式可以是i。</span></span><br><span class="line"><span class="meta">#</span><span class="bash">u 表示从当前地址往后请求的字节数，如果不指定的话，GDB默认是4个bytes。u 参数可以用下面的字符来代替，b 表示单字节，h 表示双字节，w 表示四字节，g 表示八字节。当我们指定了字节长度后，GDB 会从指内存定的内存地址开始，读写指定字节，并把其当作一个值取出来。</span></span><br><span class="line"><span class="meta">#</span><span class="bash">n/f/u可以一起使用</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h5 id="自动显示"><a href="#自动显示" class="headerlink" title="自动显示"></a>自动显示</h5><p>你可以设置一些自动显示的变量，当程序停住时，或是在你单步跟踪时，这些变量会自动显示。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">display 表达式</span><br><span class="line">display 地址</span><br><span class="line">display/格式 地址或表达式</span><br></pre></td></tr></table></figure>
+
+<h5 id="查看寄存器"><a href="#查看寄存器" class="headerlink" title="查看寄存器"></a>查看寄存器</h5><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">info registers</span><br><span class="line"><span class="meta">#</span><span class="bash">查看寄存器的情况。（除了浮点寄存器）</span></span><br><span class="line">info all-registers</span><br><span class="line"><span class="meta">#</span><span class="bash">查看所有寄存器的情况。（包括浮点寄存器）</span></span><br><span class="line">info registers &lt;regname ...&gt;</span><br><span class="line"><span class="meta">#</span><span class="bash">查看所指定的寄存器的情况。</span></span><br></pre></td></tr></table></figure>
+<h4 id="改变程序的运行"><a href="#改变程序的运行" class="headerlink" title="改变程序的运行"></a>改变程序的运行</h4><h5 id="修改变量值"><a href="#修改变量值" class="headerlink" title="修改变量值"></a>修改变量值</h5><p>修改程序运行时的变量值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">print x=4</span><br></pre></td></tr></table></figure>
+
+<p>如果变量名和gdb参数冲突，可以使用<code>set var</code> 告诉GDB这个是程序的变量名。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set var width=47</span><br></pre></td></tr></table></figure>
+
+<p><strong>在有些时候GDB并不会报告这类错误，因此都推荐使用<code>set var</code>的格式修改变量值</strong></p>
+<h5 id="跳转执行"><a href="#跳转执行" class="headerlink" title="跳转执行"></a>跳转执行</h5><p>GDB提供了修改程序的执行顺序的功能，跳转功能，直接跳转到某个语句继续执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">jump 行号</span><br><span class="line">jump 代码行的内存地址</span><br></pre></td></tr></table></figure>
+
+<p><strong>注：跳转并不会改变当前程序栈的内容，所以最好在一个函数内跳转，当你从一个函数跳到另一个函数，函数执行完进行弹栈操作时必然发生错误</strong></p>
+<h5 id="产生信号量"><a href="#产生信号量" class="headerlink" title="产生信号量"></a>产生信号量</h5><p>GDB可以使用<code>singal</code>命令，在断点处由GDB产生一个信号量给被调试程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">singal &lt;singal&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="强制函数返回"><a href="#强制函数返回" class="headerlink" title="强制函数返回"></a>强制函数返回</h5><p>如果你的调试断点在某个函数中，并还有语句没有执行完，你可以使用return命令强制函数忽略后面未执行的语句并返回</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">return</span><br><span class="line">return 返回值</span><br></pre></td></tr></table></figure>
+
+<h5 id="强制调用函数"><a href="#强制调用函数" class="headerlink" title="强制调用函数"></a>强制调用函数</h5><ul>
+<li><p>call命令 </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">call 函数</span><br><span class="line"><span class="meta">#</span><span class="bash">强制调用函数，并显示返回值，如果返回值时void就不显示</span></span><br></pre></td></tr></table></figure></li>
+<li><p>print 命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">print 函数</span><br><span class="line"><span class="meta">#</span><span class="bash">如果函数返回void依旧会显示，并把该值存入历史数据</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GDB/" rel="tag"># GDB</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/11/duo-xian-cheng-bi-ji/" rel="next" title="多线程学习笔记">
+      多线程学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text">启动</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E7%A8%8B%E5%BA%8F"><span class="nav-number">1.1.</span> <span class="nav-text">运行程序</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E5%B7%B2%E7%BB%8F%E8%BF%90%E8%A1%8C%E7%9A%84%E7%A8%8B%E5%BA%8F%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">调试已经运行的程序：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">基础命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9A%82%E5%81%9C%E7%A8%8B%E5%BA%8F"><span class="nav-number">3.</span> <span class="nav-text">暂停程序</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%81%9C%E6%AD%A2%E7%82%B9"><span class="nav-number">3.1.</span> <span class="nav-text">停止点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%81%9C%E6%AD%A2%E7%82%B9%E7%BB%B4%E6%8A%A4"><span class="nav-number">3.2.</span> <span class="nav-text">停止点维护</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E5%91%BD%E4%BB%A4%EF%BC%9A"><span class="nav-number">3.3.</span> <span class="nav-text">特殊命令：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7"><span class="nav-number">3.4.</span> <span class="nav-text">信号</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.5.</span> <span class="nav-text">多线程</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E4%BF%A1%E6%81%AF"><span class="nav-number">4.</span> <span class="nav-text">检查信息</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A0%88%E4%BF%A1%E6%81%AF"><span class="nav-number">4.1.</span> <span class="nav-text">栈信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2"><span class="nav-number">4.2.</span> <span class="nav-text">搜索</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%86%85%E5%AD%98"><span class="nav-number">4.3.</span> <span class="nav-text">查看内存</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E6%98%BE%E7%A4%BA"><span class="nav-number">4.4.</span> <span class="nav-text">自动显示</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.5.</span> <span class="nav-text">查看寄存器</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B9%E5%8F%98%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%BF%90%E8%A1%8C"><span class="nav-number">5.</span> <span class="nav-text">改变程序的运行</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%8F%98%E9%87%8F%E5%80%BC"><span class="nav-number">5.1.</span> <span class="nav-text">修改变量值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B7%B3%E8%BD%AC%E6%89%A7%E8%A1%8C"><span class="nav-number">5.2.</span> <span class="nav-text">跳转执行</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="nav-number">5.3.</span> <span class="nav-text">产生信号量</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%BA%E5%88%B6%E5%87%BD%E6%95%B0%E8%BF%94%E5%9B%9E"><span class="nav-number">5.4.</span> <span class="nav-text">强制函数返回</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BC%BA%E5%88%B6%E8%B0%83%E7%94%A8%E5%87%BD%E6%95%B0"><span class="nav-number">5.5.</span> <span class="nav-text">强制调用函数</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">yikox</p>
+  <div class="site-description" itemprop="description">格物致知</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yikox</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
