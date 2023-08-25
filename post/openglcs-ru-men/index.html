@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yikox.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="OpenGL入门学习，通过这篇文章，可以简单的编写OpenGL程序进行计算（computer shader）。个别图片来源于网络，本篇文章仅是个人学习的总结，且时间有点久远，没有留存当时截图时的链接。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenGL Compute Shader 入门">
+<meta property="og:url" content="https://yikox.github.io/post/openglcs-ru-men/index.html">
+<meta property="og:site_name" content="YIKOX&#39;BLOG">
+<meta property="og:description" content="OpenGL入门学习，通过这篇文章，可以简单的编写OpenGL程序进行计算（computer shader）。个别图片来源于网络，本篇文章仅是个人学习的总结，且时间有点久远，没有留存当时截图时的链接。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yikox.github.io/image/cpu_struct.png">
+<meta property="og:image" content="https://yikox.github.io/image/gpu_struct.png">
+<meta property="article:published_time" content="2022-02-25T11:44:39.000Z">
+<meta property="article:modified_time" content="2022-08-13T12:21:25.646Z">
+<meta property="article:author" content="yikox">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="OpenGL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yikox.github.io/image/cpu_struct.png">
+
+<link rel="canonical" href="https://yikox.github.io/post/openglcs-ru-men/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OpenGL Compute Shader 入门 | YIKOX'BLOG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">YIKOX'BLOG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+        <li class="menu-item menu-item-sitemap">
+
+    <a href="/sitemap.xml" rel="section"><i class="fa fa-sitemap fa-fw"></i>站点地图</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益 404</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yikox.github.io/post/openglcs-ru-men/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="yikox">
+      <meta itemprop="description" content="格物致知">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="YIKOX'BLOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenGL Compute Shader 入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-25 19:44:39" itemprop="dateCreated datePublished" datetime="2022-02-25T19:44:39+08:00">2022-02-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-13 20:21:25" itemprop="dateModified" datetime="2022-08-13T20:21:25+08:00">2022-08-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/GPU/" itemprop="url" rel="index"><span itemprop="name">GPU</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>OpenGL入门学习，通过这篇文章，可以简单的编写OpenGL程序进行计算（computer shader）。<br><em>个别图片来源于网络，本篇文章仅是个人学习的总结，且时间有点久远，没有留存当时截图时的链接。</em></p>
+</blockquote>
+<span id="more"></span>
+
+<h3 id="CPU-amp-amp-GPU"><a href="#CPU-amp-amp-GPU" class="headerlink" title="CPU&amp;&amp;GPU"></a>CPU&amp;&amp;GPU</h3><p>GPU全称是Graphics Processing Unit，图形处理单元。它的功能最初与名字一致，是专门用于绘制图像和处理图元数据的特定芯片，后来渐渐加入了其它很多功能。</p>
+<p>先认识一下当前移动端的GPU，移动端一般是CPU和GPU集成在一起为一个SOC的，安卓阵营主要有高通的骁龙系列，GPU的架构是Adreno，以及联发科的天玑系列和华为的麒麟系列，它们GPU的架构都是ARM公司的Mali架构。<br>IOS阵营比较特殊，苹果是的SOC是苹果自研并不对外公布，我们直接叫它苹果4/5核GPU。</p>
+<p>GPU和CPU在架构上也是完全不同的，如下图展示的一样，CPU有强大的算数逻辑单元，巨大的cache，复杂的控制器，也是因此CPU擅长逻辑控制和串行运算。而GPU有较小的cache，简单的控制器，众多高效节能的ALU，为了提高吞吐量而重度管线化，总结就是GPU适用于计算密集型和易于并发的程序。</p>
+<p><img src="/image/cpu_struct.png" alt="CPU架构图"><br><img src="/image/gpu_struct.png" alt="GPU架构图"></p>
+<h3 id="OpenGL-ES"><a href="#OpenGL-ES" class="headerlink" title="OpenGL ES"></a>OpenGL ES</h3><p>OpenGL是一个知名度很高的名词，一般它被认为是一个API(Application Programming Interface, 应用程序编程接口)，包含了一系列可以操作图形、图像的函数。然而，OpenGL本身并不是一个API，它仅仅是一个由Khronos组织制定并维护的规范(Specification)，OpenGL库的开发者通常是显卡的生产商。</p>
+<p>OpenGL ES是OpenGL的一个子集，专门用于嵌入式设备的一套规范。</p>
+<p>OpenGL自身是一个巨大的状态机(State Machine)，用户通过OpenGL提供的API修改OpenGL的状态，而用户修改的状态会保存在OpenGL的上下文(Context)中，当状态机运行的时候，需要基于一个上下文的环境（相当于一个配置表，任务表）运行。<br>[TODO]：上下文的参数，变量，内容需要详细了解，上下文与状态机的交互过程。</p>
+<h3 id="管线（pipeline）"><a href="#管线（pipeline）" class="headerlink" title="管线（pipeline）"></a>管线（pipeline）</h3><p>管线是OpenGL的一个概念，OpenGL本身的主要业务是渲染，因此OpenGL基于流水线的思想实现了一套渲染管线，数据通过管线上的一个个功能不同的着色器，实现顶点变换，光栅化，片段着色等一系列操作，最终呈现在屏幕上。</p>
+<p>下图是一个经典的着色器示意图，由六个着色器组成，三个灰色（图元装配，光栅化，测试与混合）的着色器不可编程，是由OpenGL固定好的操作，三个蓝色（顶点着色器，几何着色器，片段着色器）的着色器是可以自己编程替换的。</p>
+<p><a href="/image/render_pipeline.png">渲染管线图</a></p>
+<p>不过本文的重点不是渲染，而是计算管线，下面是一个经典的渲染管线和计算管线的对比图片</p>
+<p><a href="/image/compute_pipeline.png">计算管线图</a></p>
+<p>该图片中左边的流程是渲染管线，右边的流程是计算管线，计算管线相较于渲染管线来说非常短，仅有一个计算着色器。与纹理，内存等资源进行交互，简单且纯粹。这也使得它能把全部的GPU资源投入到计算当中去。</p>
+<h3 id="着色器-shader"><a href="#着色器-shader" class="headerlink" title="着色器(shader)"></a>着色器(shader)</h3><p>先放一个简单的计算shader代码,这个shader代码实现了一个简单的y=x*scale+bias的功能</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//OpenGL ES的版本</span></span><br><span class="line"><span class="meta">#version 310 es</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//输出的纹理Y，绑定到image3D对象，在OpenGL中只有image对象有写入纹理接口</span></span><br><span class="line"><span class="comment">//rgba32f表示输入纹理的格式，对应的还有像rgba16f之类的，详细的查询官网</span></span><br><span class="line"><span class="comment">//binding=0表示绑定点为0，可以理解为采样器的门牌号为0，也可以理解为我们要把纹理Y绑定到编号为0的资源，它是一个image3D资源</span></span><br><span class="line"><span class="comment">//writeonly是一个修饰符，对应的还有readonly,一般用来修饰image对象和buffer对象</span></span><br><span class="line"><span class="comment">//highp是一个精度限定符，对应的还有mediump和lowp,计算着色器都支持，可以修饰在对象前面，也可以全局修饰</span></span><br><span class="line"><span class="keyword">layout</span>(<span class="keyword">rgba32f</span>, <span class="keyword">binding</span> = <span class="number">0</span>) <span class="keyword">writeonly</span> <span class="keyword">uniform</span> <span class="keyword">highp</span> <span class="type">image3D</span> Y;</span><br><span class="line"><span class="comment">//输入的纹理X，绑定到sampler3D对象，sampler是也叫采样器，可以对纹理进行采样，在GL中可以设置采样方式：最近邻，双线性等</span></span><br><span class="line"><span class="keyword">layout</span>(<span class="keyword">binding</span> = <span class="number">1</span>) <span class="keyword">uniform</span> <span class="keyword">highp</span> <span class="type">sampler3D</span> X;</span><br><span class="line"></span><br><span class="line"><span class="comment">//uniform，也叫统一资源限定符，一般我们也会描述它们为uniform变量，它们是一种可以由CPU端配置数据到GPU端使用的数据，GPU端可见不可修改</span></span><br><span class="line"><span class="comment">//vec4 是glsl语言的一种数据格式，向量</span></span><br><span class="line"><span class="keyword">layout</span>(<span class="keyword">binding</span> = <span class="number">2</span>) <span class="keyword">uniform</span> <span class="type">vec4</span> scale;</span><br><span class="line"><span class="keyword">layout</span>(<span class="keyword">binding</span> = <span class="number">3</span>) <span class="keyword">uniform</span> <span class="type">vec4</span> bias;</span><br><span class="line"></span><br><span class="line"><span class="comment">//这个语句是计算着色器特有的，用来配置本地工作组大小</span></span><br><span class="line"><span class="keyword">layout</span> (<span class="keyword">local_size_x</span> = <span class="number">1</span>, <span class="keyword">local_size_y</span> = <span class="number">1</span>, <span class="keyword">local_size_z</span> = <span class="number">1</span>) <span class="keyword">in</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//main函数，入口函数，大家都懂</span></span><br><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//ivec3 也是向量数据，i表示整数</span></span><br><span class="line">    <span class="comment">//gl_GlobalInvocationID则是一组特殊的宏，表示当前线程在全局中的编号</span></span><br><span class="line">    <span class="type">ivec3</span> pos = <span class="type">ivec3</span>(<span class="built_in">gl_GlobalInvocationID</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//texelFetch是纹理采样函数，它有三个参数，纹理，坐标，mipp级数（计算着色器使用一般设为0）</span></span><br><span class="line">    <span class="type">vec4</span> color   = <span class="built_in">texelFetch</span>(X, pos, <span class="number">0</span>) * scale + bias;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//imageStore是写纹理数据的函数，只可用于image对象</span></span><br><span class="line">    <span class="built_in">imageStore</span>(Y, pos, color);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="精度限定符"><a href="#精度限定符" class="headerlink" title="精度限定符"></a>精度限定符</h4><p>precision lowp float ;<br>precision mediump int;</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/sql-ji-ben-yu-fa/" rel="prev" title="SQL基本语法">
+      <i class="fa fa-chevron-left"></i> SQL基本语法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/hexo-shi-yong-zhi-nan/" rel="next" title="hexo使用指南">
+      hexo使用指南 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU-amp-amp-GPU"><span class="nav-number">1.</span> <span class="nav-text">CPU&amp;&amp;GPU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenGL-ES"><span class="nav-number">2.</span> <span class="nav-text">OpenGL ES</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%A1%E7%BA%BF%EF%BC%88pipeline%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">管线（pipeline）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9D%80%E8%89%B2%E5%99%A8-shader"><span class="nav-number">4.</span> <span class="nav-text">着色器(shader)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B2%BE%E5%BA%A6%E9%99%90%E5%AE%9A%E7%AC%A6"><span class="nav-number">4.1.</span> <span class="nav-text">精度限定符</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">yikox</p>
+  <div class="site-description" itemprop="description">格物致知</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yikox</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
