@@ -15,4 +15,5 @@
     * [hexo使用指南](./工具/hexo使用指南.md)
 * 编程语言
     * python
+        * [基础语法](./编程语言/python/基础语法.md)
         * [python-简单应用](./编程语言/python/python-简单应用.md)
