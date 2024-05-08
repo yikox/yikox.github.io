@@ -4,6 +4,7 @@
         * [NvJEPG使用指南](./神经网络/计算机图形学/NvJEPG使用指南.md)
         * [OpenGLCS入门](./神经网络/计算机图形学/OpenGLCS入门.md)
         * [FPIE(泊松融合)使用指南](./神经网络/计算机图形学/FPIE(泊松融合)使用指南.md)
+        * [glcs同步bug](./神经网络/计算机图形学/glcs同步bug.md)
     * AIGC
         * [polygraphy](./神经网络/AIGC/polygraphy.md)
         * [软件&环境](./神经网络/AIGC/软件&环境.md)
