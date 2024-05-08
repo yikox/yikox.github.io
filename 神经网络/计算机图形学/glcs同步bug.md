@@ -37,5 +37,5 @@ glDispatchCompute(1, 3, 1)
 ## 理论支撑
 常规的理解上，由于卷积 1 和卷积 2 使用了同一张纹理，且卷积 1 是进行写纹理，那么卷积 1 和卷积 2 之间的同步应当由驱动进行处理（其他的厂商不用Barrier也是结果正确的），而不是由开发者手动进行处理。因此我向联发科的同学进行了询问并得到了以下回复：
 在 [ARM Mali OpenGL es](https://arm-software.github.io/opengl-es-sdk-for-android/compute_intro.html#computeMemory)的文档中有关于compute pipeline的描述：
-![GLCS Images Synchronizing-1.png](_imgs/GLCS Images Synchronizing-1.png)
+![GLCS Images Synchronizing-1.png](./_imgs/GLCS Images Synchronizing-1.png)
 如果 compute shader 去写了 SSBOs,images,atomics,shared memory需要由开发者自己进行同步。
