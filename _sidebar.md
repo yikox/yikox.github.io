@@ -12,6 +12,7 @@
     * [GDB调试笔记](./计算机/GDB调试笔记.md)
     * [多线程笔记](./计算机/多线程笔记.md)
     * [SQL基本语法](./计算机/SQL基本语法.md)
+    * [linux常用命令](./计算机/linux常用命令.md)
 * 工具
     * [vscode-sftp使用指南](./工具/vscode-sftp使用指南.md)
     * [hexo使用指南](./工具/hexo使用指南.md)
