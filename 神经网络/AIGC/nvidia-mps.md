@@ -187,5 +187,9 @@ GPU还具有时间片调度器，用于调度属于不同CUDA上下文的工作�
 
 此外，在软件层内，为了从OS接收异步通知并代表应用程序执行异步CPU工作，CUDA驱动程序可以创建内部线程：Up Call处理程序线程和潜在的用户回调执行程序线程。
 ### Client-Server 架构
-![Client-server Architecture](#_imgs/clinet-server-architecture.png)
+![Client-server Architecture](_imgs/clinet-server-architecture.png)
+
 此图显示了在运行由多个OS进程组成的MPI应用程序时，CUDA内核的可能调度。请注意，虽然每个MPI进程内的CUDA内核可以被并发调度，但每个MPI进程都被分配了整个图形处理器上的连续调度时间片。
+
+
+使用 pre Volta MPS 的版本时，服务器管理与单个CUDA上下文关联的硬件资源。属于MPS客户的CUDA上下文通过MPS服务器进行工作。这允许客户端CUDA上下文绕过与时间切片调度相关的硬件限制，并允许其CUDA内核同时执行。

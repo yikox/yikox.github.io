@@ -8,6 +8,7 @@
     * AIGC
         * [polygraphy](./神经网络/AIGC/polygraphy.md)
         * [软件&环境](./神经网络/AIGC/软件&环境.md)
+        * [nvidia-mps](./神经网络/AIGC/nvidia-mps.md)
 * 计算机
     * [GDB调试笔记](./计算机/GDB调试笔记.md)
     * [多线程笔记](./计算机/多线程笔记.md)
