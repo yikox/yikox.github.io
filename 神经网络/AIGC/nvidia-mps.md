@@ -187,7 +187,7 @@ GPU还具有时间片调度器，用于调度属于不同CUDA上下文的工作�
 
 此外，在软件层内，为了从OS接收异步通知并代表应用程序执行异步CPU工作，CUDA驱动程序可以创建内部线程：Up Call处理程序线程和潜在的用户回调执行程序线程。
 ### Client-Server 架构
-![Client-server Architecture](_imgs/clinet-server-architecture.png)
+![Client-server Architecture](#imgs/clinet-server-architecture.png)
 
 此图显示了在运行由多个OS进程组成的MPI应用程序时，CUDA内核的可能调度。请注意，虽然每个MPI进程内的CUDA内核可以被并发调度，但每个MPI进程都被分配了整个图形处理器上的连续调度时间片。
 
