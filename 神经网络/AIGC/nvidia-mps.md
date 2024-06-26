@@ -1,6 +1,6 @@
 # Multi-Process Service (MPS)
 > 基于[mps](https://docs.nvidia.com/deploy/mps/index.html#topic_2)文档翻译
-## 简介
+## 1、简介
 Multi-Process Service (MPS) is an alternative, binary-compatible implementation of the CUDA Application Programming Interface (API). 
 > MPS是CUDA应用程序编程接口（API）的替代二进制兼容实现。
 The MPS runtime architecture is designed to transparently enable co-operative multi-process CUDA applications, typically MPI jobs, to utilize Hyper-Q capabilities on the latest NVIDIA (Kepler and later) GPUs. Hyper-Q allows CUDA kernels to be processed concurrently on the same GPU;
@@ -8,20 +8,22 @@ The MPS runtime architecture is designed to transparently enable co-operative mu
 this can benefit performance when the GPU compute capacity is underutilized by a single application process.
 > 当单个应用程序进程利用不足时，这可以提高性能。
 
-### Volta MPS
+### 1.1.2、Volta MPS
 Volta 架构 引入新的MPS功能，与Volta之前版本的MPS相比，Volta MPS提供了一些关键改进：
 - Volta MPS客户端无需通过MPS服务器直接将工作提交到图形处理器。
 - 每个Volta MPS客户端都拥有自己的图形处理器地址空间，而不是与所有其他MPS客户端共享图形处理器地址空间。
 - Volta MPS 支持为服务质量（QoS）限制有限的执行资源配置
 本文档将介绍新功能，并指出Volta MPS和Volta之前的图形处理器上MPS之间的差异。在Volta上运行MPS将自动启用新功能。
-
-## MPS 是什么
+## 1.3、概念
+### 1.3.2、MPS 是什么
 MPS是CUDA API的二进制兼容客户端-服务器运行时实现，由多个组件组成。
 - Control Daemon Process - 控制守护进程负责启动和停止服务器，以及协调客户端和服务器之间的连接。
 - Client Runtime - MPS客户端运行时内置在CUDA驱动程序库中，任何CUDA应用程序都可以透明地使用。
 - Server Process  - 服务器是客户端到图形处理器的共享连接，并提供客户端之间的并发性。
 
-## 使用 MPS 的好处
+## 2、何时使用 MPS
+
+### 2.1、使用 MPS 的好处
 - GPU利用率
 单个进程可能无法利用图形处理器上可用的所有计算和内存带宽容量。MPS允许来自不同进程的内核和memCopy操作在图形处理器上重叠，从而实现更高的利用率和更短的运行时间。
 - 减少了图形处理器上的上下文存储
@@ -29,7 +31,13 @@ MPS是CUDA API的二进制兼容客户端-服务器运行时实现，由多个�
 - 减少了图形处理器上下文切换
 如果没有MPS，当进程共享图形处理器时，它们的调度资源必须在图形处理器中交换和交换。MPS服务器在其所有客户端之间共享一组调度资源，从而消除了当图形处理器在这些客户端之间进行调度时交换的负担。
 
-## 限制
+### 2.2、什么程序合适使用 mps
+当每个应用程序进程不会产生足够的工作来使GPU饱和时，MPS非常有用。使用MPS，每个节点可以运行多个进程，以实现更多的并发。这样的应用程序通过每个网格具有少量块来标识。
+此外，如果应用程序由于每个网格的线程数量较少而导致GPU占用率较低，则可以使用MP来实现性能改进。建议在内核调用中使用较少的每个网格的块和更多的每个块的线程来增加每个块的占用。MPS允许从其他进程运行的CUDA内核占用剩余的GPU容量。
+这些情况发生在可伸缩性很强的情况下，计算容量(节点、CPU核心和/或GPU计数)增加，而问题大小保持不变。尽管计算工作总量保持不变，但每个进程的工作减少，并且可能在应用程序运行时未充分利用可用计算能力。有了MPS，GPU将允许从不同进程启动的内核同时运行，并从计算中删除不必要的串行化点。
+
+### 2.3、考虑事项
+#### 限制
 - 仅Linux操作系统支持MPS。当在非Linux操作系统上启动时，MPS服务器无法启动。
 - Tegra平台不支持MPS。在Tegra平台上启动时，MPS服务器将无法启动。
 - MPS需要具备3.5或更高计算能力的GPU。如果应用CUDA_Visible_Device后可见的其中一个GPU不具有3.5或更高的计算能力，则MPS服务器将无法启动。
@@ -50,7 +58,7 @@ MPS是CUDA API的二进制兼容客户端-服务器运行时实现，由多个�
 
 ## 应用考虑
 - 在Pre-Volta MPS客户端的MPS下不支持NVIDIA Codec SDK：https://developer.nvidia.com/nvidia-video-codec-sdk。
-- 仅支持位应用程序。如果CUDA应用不是64位，则MPS服务器无法启动。MPS客户端CUDA初始化失败。
+- 仅支持64位应用程序。如果CUDA应用不是64位，则MPS服务器无法启动。MPS客户端CUDA初始化失败。
 - 如果应用程序使用CUDA驱动程序API，则它必须使用CUDA 4.0或更高版本中的标头(即，它不能是通过将CUDA_FORCE_API_VERSION设置为较早版本来构建的)。如果上下文版本早于4.0，则客户端中的上下文创建将失败。
 - 不支持动态并行。如果模块使用动态并行功能，则CUDA模块加载将失败。
 - MPS服务器仅支持使用与服务器相同的UID运行的客户端。如果服务器未使用相同的UID运行，则客户端应用程序将无法初始化。
@@ -194,3 +202,103 @@ GPU还具有时间片调度器，用于调度属于不同CUDA上下文的工作�
 ![pre-volta-clinet-server-architecture](https://yikox.github.io/imgs/pre-volta-clinet-server-architecture.png)
 
 使用 pre Volta MPS 的版本时，服务器管理与单个CUDA上下文关联的硬件资源。属于MPS客户的CUDA上下文通过MPS服务器进行工作。这允许客户端CUDA上下文绕过与时间切片调度相关的硬件限制，并允许其CUDA内核同时执行。
+
+Volta提供新的硬件功能来减少MPS服务器必须管理的硬件资源类型。客户端CUDA上下文管理Volta上的大部分硬件资源，并将工作直接提交给硬件。Volta MPS服务器调解确保同时安排各个客户端提交的工作所需的剩余共享资源，并远离关键执行路径。
+
+MPS客户端和MPS服务器之间的通信完全封装在CUDA API后面的CUDA驱动程序中。因此，MPS对MPI程序是透明的。
+
+MPS客户端CUDA上下文保留其向上调用处理程序线程和任何同步执行程序线程。MPS服务器创建一个额外的向上调用处理程序线程，并为每个客户端创建一个工作线程。
+
+
+### Provisioning Sequence
+![Provisioning Sequence](https://yikox.github.io/imgs/provisioning-sequence.png)
+具有多个用户的系统范围预配。
+#### 服务器
+MPS控制守护进程负责MPS服务器的启动和关闭。控制守护程序一次最多允许一个MPS服务器处于活动状态。当MPS客户端连接到控制守护程序时，如果没有活动的服务器，则该守护程序启动MPS服务器。以与MPS客户端相同的用户ID启动MPS服务器。
+如果存在已经活动的MPS服务器，并且服务器和客户端的用户ID匹配，则控制守护程序允许客户端继续连接到服务器。如果MPS服务器已经处于活动状态，但服务器和客户端是使用不同的用户ID启动的，则一旦所有客户端都断开连接，控制守护进程就会请求现有服务器关闭。现有服务器关闭后，控制守护进程将启动一个新服务器，其用户ID与新用户的客户端进程的用户ID相同。这如上图所示，其中用户Bob在服务器可用之前启动了客户端C‘。只有当用户Alice的客户端退出时，才会为用户Bob和客户端C‘创建服务器。
+如果没有挂起的客户端请求，则MPS控制守护程序不会关闭活动服务器。这意味着即使所有活动客户端退出，活动MPS服务器进程也将持续。当使用与活动MPS服务器不同的用户ID启动的新MPS客户端连接到控制守护程序时，或者当客户端启动的工作已经导致故障时，活动服务器被关闭。这如上面的示例所示，其中，控制守护进程仅在用户Bob启动客户端C时向Alice的服务器发出服务器退出请求，即使Alice的所有客户端都已退出。
+活动MPS服务器可能处于以下状态之一：正在初始化、活动或故障。正在初始化状态指示MPS服务器正忙于初始化，并且MPS控制将在其队列中保持新的客户端请求。活动状态指示MPS服务器能够处理新的客户端请求。故障状态表示MPS服务器因客户端导致的致命故障而被阻止。任何新的客户端请求都将被拒绝，并显示错误CUDA_ERROR_MPS_SERVER_NOT_READY。
+新启动的MPS服务器将首先处于正在初始化状态。初始化成功后，MPS服务器进入活动状态。当客户端遇到致命故障时，MPS服务器将从“活动”状态转变为“故障”状态。在Pre-Volta MPS上，MPS服务器在遇到致命故障后关闭。在Volta MPS上，在所有故障客户端断开连接后，MPS服务器再次变为活动状态。
+控制守护程序可执行文件还支持交互模式，在该模式下，具有足够权限的用户可以发出命令，例如查看服务器和客户端的当前列表及其状态或手动启动和关闭服务器。
+#### 客户端连接/断开
+在程序中首次初始化CUDA时，CUDA驱动程序会尝试连接到MPS控制守护程序。如果连接尝试失败，程序在没有MPS的情况下将继续正常运行。然而，如果连接尝试成功，则MPS控制守护进程继续以确保以与连接客户端的用户ID相同的用户ID启动的MPS服务器在返回客户端之前是活动的。然后，MPS客户端继续连接到服务器。
+MPS客户端、MPS控制守护进程和MPS服务器之间的所有通信都使用命名管道和UNIX域套接字完成。MPS服务器启动工作线程以接收来自客户端的命令。当客户端状态变为‘ACTIVE’时，MPS服务器将记录成功的客户端连接。在客户端进程退出时，服务器将销毁客户端进程未显式释放的任何资源，并终止工作线程。客户端退出事件将由MPS服务器记录。
+
+## 附录：工具和界面参考
+以下实用程序和环境变量用于管理MPS执行环境。下面将介绍它们以及标准CUDA编程环境的其他相关部分。
+### Utilities and Daemons
+#### nvidia-cuda-mps-Control
+此控制守护程序通常存储在Linux系统上的/usr/bin下，并且通常以超级用户特权运行，用于管理下一节中描述的nvidia-cuda-mps-server。以下是相关用例：
+```shell
+man nvidia-cuda-mps-control # Describes usage of this utility.
+
+nvidia-cuda-mps-control -d # Start daemon in background process.
+
+ps -ef | grep mps # See if the MPS daemon is running.
+
+echo quit | nvidia-cuda-mps-control # Shut the daemon down.
+
+nvidia-cuda-mps-control -f # Start daemon in foreground
+
+nvidia-cuda-mps-control -v           # Print version of control daemon executable (applicable on Tegra platforms only).
+```
+控制守护程序创建nvidia-cuda-mps-control.pid文件，其中包含CUDA_MPS_PIPE_DIRECTORY中控制守护程序进程的ID。当控制守护程序的多个实例并行运行时，可以通过在相应的CUDA_MPS_PIPE_DIRECTORY中查找特定实例的ID来针对特定实例。如果未设置CUDA_MPS_PIPE_DIRECTORY，则将在默认管道目录/tmp/nvidia-mps中创建nvidia-cuda-mps-control.pid文件。
+在交互模式下使用时，可用的命令包括:
+- get_server_list - 这将打印出服务器实例的所有PID的列表。
+- get_server_status<PID> - 这将打印出具有给定<PID>的服务器的状态。
+- start_server -uid<user id>-这将使用给定的用户ID手动启动nvidia-cuda-mps-server的新实例。
+- get_client_list <PID> - 列出连接到分配给给定ID的服务器实例的客户端应用程序的ID
+- quit - 终止nvidia-cuda-mps-control后台进程
+
+可用于Volta MPS控制的命令：
+- get_device_client_list [<PID>] - 列出设备和列举此设备的客户端应用程序的PID。它可选地获取服务器实例的PID。
+- set_default_active_thread_percentage <percentage> - 这将覆盖MPS服务器的默认活动线程百分比。如果已经派生了一台服务器，则此命令将仅影响下一台服务器。如果执行退出命令，设置的值将丢失。默认值为100。
+- get_default_active_thread_percentage - 查询当前默认可用线程百分比。
+- set_active_thread_percentage <PID> <percentage> - 这将覆盖给定PID的MPS服务器实例的活动线程百分比。- 之后使用该服务器创建的所有客户端都将遵守新限制。现有客户端不受影响。
+- get_active_thread_percentage <PID> - 查询给定ID的MPS服务器实例的当前可用线程百分比。
+- set_default_device_pinned_mem_limit <dev> <value> - 设置每个MPS客户端的默认设备固定内存限制。如果已经派生了一台服务器，则此命令将仅影响下一台服务器。如果执行退出命令，设置的值将丢失。该值的形式必须是一个整数，后跟一个限定符，即分别以GB或MB为单位指定值的“G”或“M”。例如：为了将设备0的限制设置为10 GB，使用的命令为：
+- set_default_device_pinned_mem_limit 0 10G。
+- 默认情况下，内存限制处于禁用状态。
+- get_default_device_pinned_mem_limit <dev> - 查询设备的当前默认固定内存限制。
+- set_device_pinned_mem_limit <PID> <dev> <Value> - 这将覆盖MPS服务器的设备固定内存限制。这为设备设备的- 给定ID的MPS服务器实例的每个客户端设置设备固定的存储器限制。之后使用该服务器创建的所有客户端都将遵守新限制。现有客户端不受影响。将设备的ID为1024的服务器的内存限制设置为900MB的用法示例。 set_Device_pinned_mem_limit 1024 0900M
+- get_device_pinned_mem_limit <PID> <dev> - 查询设备设备的给定ID的MPS服务器实例的当前设备固定内存限制。
+每个节点应仅运行nvidia-cuda-mps-Control守护程序的一个实例
+- terminate_client <server PID> <client PID> - 终止在由 <server PID> 表示的MPS服务器上运行的MPS客户端进程的所有未完成的GPU工作。用于终止在PID123的MPS服务器上运行的PID1024的MPS客户端进程的未完成的GPU工作的示例用法：terminate_client 123 1024
+- ps[-p PID] - 报告当前客户端进程的快照。它可选地获取服务器实例的ID。它显示了ID、服务器分配的唯一标识符、关联设备的部分UUID、连接的服务器的ID、命名空间ID和客户端的命令行。
+- set_default_client_priority [priority] - 设置将用于新客户端的默认客户端优先级。该值不适用于现有客户端。优先级值应被视为对CUDA驱动程序的提示，而不是保证。允许值为0[NORMAL]和1[BELOW NORMAL]。如果执行退出命令，设置的值将丢失。默认值为0[NORMAL]。
+- get_default_client_priority - 查询将用于新客户端的当前优先级值。
+#### nvidia-cuda-mps-server
+此守护程序通常存储在Linux系统上的 /usr/bin下，与在节点上运行的客户端应用程序在相同的$UID下运行。的.当客户端应用程序连接到控制守护程序时，nvidia-cuda-mps-server实例按需创建。不应直接调用服务器二进制文件，而是应使用控制守护程序来管理服务器的启动和关闭。
+nvidia-cuda-mps-server 进程拥有图形处理器上的CUDA上下文，并使用它为其客户端应用程序进程执行图形处理器操作。因此，当通过nvidia-smi（或任何基于NVML的应用程序）查询活动进程时，nvidia-cuda-mps-server将显示为活动的CUDA进程，而不是任何客户端进程。
+在Tegra平台上，nvidia-cuda-mps-server可执行文件的版本可以打印：
+```shell
+nvidia-cuda-mps-server -v
+```
+#### nvidia-smi
+通常存储在Linux系统上的/usr/bin下，用于配置节点上的图形处理器。以下用例与管理MPS相关：
+```shell
+man nvidia-smi # Describes usage of this utility.
+
+nvidia-smi -L # List the GPU's on node.
+
+nvidia-smi -q # List GPU state and configuration information.
+
+nvidia-smi -q -d compute # Show the compute mode of each GPU.
+
+nvidia-smi -i 0 -c EXCLUSIVE_PROCESS # Set GPU 0 to exclusive mode, run as root.
+
+nvidia-smi -i 0 -c DEFAULT # Set GPU 0 to default mode, run as root. (SHARED_PROCESS)
+
+nvidia-smi -i 0 -r # Reboot GPU 0 with the new setting.
+```
+### 环境变量
+#### CUDA_VISIBLE_DEVICES
+CUDA_VISIBLE_DEVICES用于指定哪些图形处理器应该对CUDA应用程序可见。只有序列中存在索引或UID的设备才能对CUDA应用程序可见，并且它们按序列的顺序列举。
+当在启动控制守护程序之前设置了CUDA_VISIBLE_DEVICES时，MPS服务器将重新映射设备。这意味着，如果您的系统具有设备0、1和2，并且如果CUDA_VISIBLE_DEVICES设置为“0，2”，那么当客户端连接到服务器时，它将看到重新映射的设备-设备0和设备1。因此，在启动客户端时将CUDA_VISIBLE_DEVICES设置为“0，2”将导致错误。
+如果任何可见设备是Volta+，MPS控制守护程序将进一步过滤掉任何Volta之前的设备。
+为了避免这种模糊性，我们建议使用UID而不是索引。这些可以通过启动nvidia-smi -q来查看。启动服务器或应用程序时，您可以将CUDA_VISIBLE_DEVICES设置为“UUID_1，UUID_2”，其中UUID_1和UUID_2是GDPUID。当您指定UID的前几个字符（包括“图形处理器-”）而不是完整的UID时，它也会起作用。
+如果应用CUDA_VISIBLE_DEQUICES后可见不兼容的设备，MPS服务器将无法启动。
+#### CUDA_MPS_PIPE_DIRECTORY
+MPS控制守护程序、MPS服务器和关联的MPS客户端通过命名管道和UNix域插槽相互通信。这些管道和插座的默认目录是/tmp/nvidia-mps。环境变量CUDA_MPS_PIPE_DIRECTORY可用于覆盖这些管道和插座的位置。此环境变量的值在共享同一MPS服务器和MPS控制守护程序的所有MPS客户端之间应该一致。
+包含这些命名管道和域插槽的目录的建议位置是本地文件夹，例如/tmp。如果指定的位置存在于共享的多节点文件系统中，则每个节点的路径必须是唯一的，以防止多个MPS服务器或MPS控制守护进程使用相同的管道和插槽。当按用户配置MPS时，目录应设置为一个位置，以便不同的用户最终不会使用同一目录。
+#### CUDA_MPS_LOG_DIRECTORY
