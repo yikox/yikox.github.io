@@ -1,4 +1,6 @@
-Multi-Process Service 多进程服务
+
+> Multi-Process Service 多进程服务
+> 从官方文档翻译[地址](https://docs.nvidia.com/deploy/mps/index.html#topic_2)
 
 The Multi-Process Service (MPS) is an alternative, binary-compatible implementation of the CUDA Application Programming Interface (API). The MPS runtime architecture is designed to transparently enable co-operative multi-process CUDA applications, typically MPI jobs, to utilize Hyper-Q capabilities on the latest NVIDIA (Kepler-based) Tesla and Quadro GPUs .  
 多进程服务（MPS）是 CUDA 应用程序接口（API）的替代、二进制兼容实现。MPS 运行时架构旨在透明地使协同多进程 CUDA 应用程序，通常 MPI 作业，能够利用最新 NVIDIA（基于 Kepler 的）Tesla 和 Quadro GPU 上的 Hyper-Q 功能。
