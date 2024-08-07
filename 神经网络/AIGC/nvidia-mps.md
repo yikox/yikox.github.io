@@ -26,7 +26,7 @@ Volta 架构引入了新的 MPS 能力。与预 Volta GPU 上的 MPS 相比，Vo
     Volta MPS 支持有限的执行资源分配以提供服务质量（QoS）。
 This document will introduce the new capabilities and note the differences between Volta MPS and MPS on pre-Volta GPUs. Running MPS on Volta will automatically enable the new capabilities.  
 这份文档将介绍新功能，并指出 Volta MPS 与 Volta 之前的 GPU 上的 MPS 之间的差异。在 Volta 上运行 MPS 将自动启用新功能。
-![mps-1](/imgs/mps-1.png)
+![mps-1](https://yikox.github.io/imgs/mps-1.png)
 
 ###  1.1.3. 目标受众
 This document is a comprehensive guide to MPS capabilities and usage. It is intended to be read by application developers and users who will be running GPU calculations and intend to achieve the greatest level of execution performance. It is also intended to be read by system administrators who will be enabling the MPS capability in a user-friendly way, typically on multi-node clusters.  
@@ -463,11 +463,11 @@ Additionally, within the software layer, to receive asynchronous notifications f
 此外，在软件层中，为了从操作系统接收异步通知并代表应用程序执行异步 CPU 工作，CUDA 驱动器可能会创建内部线程：一个回调处理器线程，以及可能的用户回调执行线程。
 
 ## 3.2. 客户端-服务器架构
-![mps-2](/imgs/mps-2.png)
+![mps-2](https://yikox.github.io/imgs/mps-2.png)
 
 This diagram shows a likely schedule of CUDA kernels when running an MPI application consisting of multiple OS processes without MPS. Note that while the CUDA kernels from within each MPI process may be scheduled concurrently, each MPI process is assigned a serially scheduled time-slice on the whole GPU.  
 此图显示了在运行包含多个 OS 进程的 MPI 应用时，CUDA 内核可能的运行时间表，不包含 MPS。请注意，尽管每个 MPI 进程内的 CUDA 内核可能同时调度，但整个 GPU 上为每个 MPI 进程分配了按顺序调度的时间片。
-![mps-3](/imgs/mps-3.png)
+![mps-3](https://yikox.github.io/imgs/mps-3.png)
 
 When using pre-Volta MPS, the server manages the hardware resources associated with a single CUDA context. The CUDA contexts belonging to MPS clients funnel their work through the MPS server. This allows the client CUDA contexts to bypass the hardware limitations associated with time sliced scheduling, and permit their CUDA kernels execute simultaneously.  
 使用预 Volta MPS 时，服务器管理与单个 CUDA 上下文关联的硬件资源。MPS 客户端的 CUDA 上下文通过 MPS 服务器分发其工作。这使得客户端 CUDA 上下文可以绕过与时间切片调度相关的时间限制，允许其 CUDA 内核同时执行。
@@ -483,7 +483,7 @@ MPS 客户端 CUDA 上下文保留其回调处理器线程和任何异步执行�
 
 ## 3.3. 配置顺序
 
-![mps-4](/imgs/mps-4.png)
+![mps-4](https://yikox.github.io/imgs/mps-4.png)
 
 Figure 1 System-wide provisioning with multiple users.
 图 1 全局配置与多个用户。
