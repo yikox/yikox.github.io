@@ -63,6 +63,12 @@
     <script src="https://unpkg.com/docsify-toc@1.0.0/dist/toc.js"></script>
     <!-- 添加侧边栏文件折叠 -->
     <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+
+    <script>
+    if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('sw.js');
+    }
+    </script>
 </body>
 
 </html>
