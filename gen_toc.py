@@ -3,6 +3,11 @@ import re
 
 ignore_patterns = [
             '^_', # 忽略以下划线开头的文件或目录
+            '^.git', # 忽略.git目录
+            '^.obsidian', # 忽略.obsidian
+            '^.vscode', # 忽略.vscode
+            '^README.md', # 忽略README.md
+            '^imgs', # 忽略imgs
             '^gen_toc.py', # 忽略自身
             'infomation.md' # 忽略特定文件
             ]  
